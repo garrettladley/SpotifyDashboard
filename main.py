@@ -2,6 +2,7 @@ import os
 from enum import Enum
 
 import spotipy
+from dash import Dash, html
 from spotipy.oauth2 import SpotifyOAuth
 
 import creds
@@ -46,6 +47,7 @@ def top_tracks_func(limit, time_range):
     top_tracks = sp.current_user_top_tracks(limit=limit, time_range=time_range.value[0])
 
     top_tracks_list = []
+    images = []
     for idx, item in enumerate(top_tracks['items']):
         artist_str = item['artists'][0]['name']
         if len(item['artists']) > 1:
@@ -55,7 +57,9 @@ def top_tracks_func(limit, time_range):
                 if art_idx < len(item['artists']) - 1:
                     artist_str = artist_str + ', '
         top_tracks_list.append(item['name'] + ' - ' + artist_str)
-    return [top_tracks_list, titler(limit, 'Tracks', time_range)]
+        x = item['album']['images']
+        images.append(x[0])
+    return [top_tracks_list, images, titler(limit, 'Tracks', time_range)]
 
 
 # gets the users top artists based on a given limit and time range
@@ -64,21 +68,45 @@ def top_artists_func(limit, time_range):
     top_artists = sp.current_user_top_artists(limit=limit, time_range=time_range.value[0])
 
     top_artists_list = []
+    images = []
     for idx, item in enumerate(top_artists['items']):
         top_artists_list.append(item['name'])
-    return [top_artists_list, titler(limit, 'Artists', time_range)]
+        x = item['images']
+        images.append(x[0])
+    return [top_artists_list, images, titler(limit, 'Artists', time_range)]
 
 
 # formats the resulting list to be readable
 def list_formatter(input_list):
     n = len(input_list[0])
-    result = [input_list[1], os.linesep]
+    result = [input_list[2], os.linesep]
     for x in range(n):
         result.append(str(x + 1) + ') ' + input_list[0][x])
         result.append(os.linesep)
     return ''.join(result)
 
 
-# for the time being, print the results to the console
-print(list_formatter(top_tracks_func(10, Term.LONG)))
-print(list_formatter(top_artists_func(10, Term.LONG)))
+ttf = top_tracks_func(10, Term.LONG)
+taf = top_artists_func(10, Term.LONG)
+
+# Plotly dash
+app = Dash(__name__)
+
+
+def grapher(inner):
+    result = []
+
+    for x in range(0, 10):
+        result.append(
+            html.Div([html.Img(src=inner[1][x].get('url'),
+                               height=240,
+                               width=240),
+                      html.Figcaption(inner[0][x])]))
+
+    return result
+
+
+app.layout = html.Div([html.Div(grapher(ttf)), html.Div(grapher(taf))])
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
