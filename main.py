@@ -1,4 +1,3 @@
-import os
 from enum import Enum
 
 import spotipy
@@ -76,23 +75,6 @@ def top_artists_func(limit, time_range):
     return [top_artists_list, images, titler(limit, 'Artists', time_range)]
 
 
-# formats the resulting list to be readable
-def list_formatter(input_list):
-    n = len(input_list[0])
-    result = [input_list[2], os.linesep]
-    for x in range(n):
-        result.append(str(x + 1) + ') ' + input_list[0][x])
-        result.append(os.linesep)
-    return ''.join(result)
-
-
-ttf = top_tracks_func(10, Term.LONG)
-taf = top_artists_func(10, Term.LONG)
-
-# Plotly dash
-app = Dash(__name__)
-
-
 def grapher(inner):
     result = []
 
@@ -106,7 +88,9 @@ def grapher(inner):
     return result
 
 
-app.layout = html.Div([html.Div(grapher(ttf)), html.Div(grapher(taf))])
-
 if __name__ == '__main__':
+    app = Dash(__name__)
+    ttf = top_tracks_func(10, Term.LONG)
+    taf = top_artists_func(10, Term.LONG)
+    app.layout = html.Div([html.Div(grapher(ttf)), html.Div(grapher(taf))])
     app.run_server(debug=True)
