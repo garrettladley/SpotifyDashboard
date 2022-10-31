@@ -88,9 +88,13 @@ def grapher(inner):
     return result
 
 
-if __name__ == '__main__':
+def main():
     app = Dash(__name__)
     ttf = top_tracks_func(10, Term.LONG)
     taf = top_artists_func(10, Term.LONG)
     app.layout = html.Div([html.Div(grapher(ttf)), html.Div(grapher(taf))])
     app.run_server(debug=True)
+
+
+if __name__ == '__main__':
+    main()
